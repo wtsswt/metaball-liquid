@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>元球液体 · 模糊 + 相加 + 一条阈值线</title>
-<meta name="description" content="用一张软膜、一团雾和一个可拖拽的交互演示，讲清元球（metaball）液体为什么能融合、为什么必须模糊、阈值该怎么调。">
+<title>元球液体 · 可拖动的 metaball 实验</title>
+<meta name="description" content="一个实时运行的 metaball 液体演示：模糊的球叠成浓度场，再用一条阈值线切出边界。球数、半径、阈值、边缘软度、阻尼都可实时调，另附浓淡图视图和浓度剖面曲线。">
 <meta name="theme-color" content="#f7f7f5">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230a0d12'/%3E%3Ccircle cx='12' cy='16' r='7' fill='%235fe0ff' opacity='.85'/%3E%3Ccircle cx='21' cy='16' r='6' fill='%23ff7bb0' opacity='.8'/%3E%3C/svg%3E">
 <style>
@@ -55,7 +55,7 @@
   .kicker::before{content:"";width:26px;height:2px;background:var(--accent);border-radius:2px}
   h1{
     margin:0 0 18px;
-    font-size:clamp(1.65rem,3.6vw + .5rem,2.9rem);
+    font-size:clamp(2.05rem,4.6vw + .6rem,3.4rem);
     line-height:1.24;letter-spacing:-.015em;font-weight:680;
   }
   h1 em{font-style:normal;color:var(--accent-ink)}
@@ -199,47 +199,6 @@
   .prose p{margin:0 0 14px}
   .prose p:last-child{margin-bottom:0}
   .prose strong{font-weight:640}
-  mark{
-    background:linear-gradient(180deg,transparent 58%, rgba(95,224,255,.42) 58%);
-    color:inherit;padding:0 1px;
-  }
-  .callout{
-    background:linear-gradient(180deg,#fff,#fbfdfc);
-    border:1px solid var(--line);border-left:3px solid var(--accent);
-    border-radius:0 var(--r-md) var(--r-md) 0;
-    padding:clamp(13px,2vw,18px) clamp(15px,2.4vw,20px);margin:20px 0;
-    font-size:clamp(.94rem,.4vw + .85rem,1.02rem);line-height:1.68;
-  }
-  .callout p{margin:0}
-  .callout .mini-label{
-    font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--accent-ink);
-    font-weight:700;display:block;margin-bottom:6px;
-  }
-
-  .why-grid{display:grid;gap:14px;grid-template-columns:1fr;margin:18px 0 4px}
-  .why{
-    background:var(--card);border:1px solid var(--line);border-radius:var(--r-md);
-    padding:clamp(14px,2vw,18px);
-  }
-  .why h3{margin:0 0 8px;font-size:clamp(.95rem,.5vw + .8rem,1.04rem);font-weight:650;line-height:1.45}
-  .why h3 span{color:var(--accent);font-family:var(--mono);font-size:.85em;margin-right:6px}
-  .why p{margin:0;color:var(--ink-soft);font-size:clamp(.9rem,.3vw + .83rem,.96rem)}
-  .why p + p{margin-top:9px}
-
-  ol.steps{list-style:none;counter-reset:s;margin:18px 0 0;padding:0}
-  ol.steps li{
-    counter-increment:s;position:relative;padding:0 0 14px 40px;
-    color:var(--ink-soft);font-size:clamp(.92rem,.3vw + .85rem,.98rem);
-  }
-  ol.steps li::before{
-    content:counter(s);position:absolute;left:0;top:1px;
-    width:25px;height:25px;border-radius:50%;background:var(--accent-soft);
-    color:var(--accent-ink);font-family:var(--mono);font-size:12px;font-weight:700;
-    display:flex;align-items:center;justify-content:center;
-    border:1px solid rgba(15,143,134,.18);
-  }
-  ol.steps li:last-child{padding-bottom:0}
-  ol.steps li b{color:var(--ink);font-weight:620}
 
   .table-scroll{overflow-x:auto;margin:18px 0 6px;-webkit-overflow-scrolling:touch;border:1px solid var(--line);border-radius:var(--r-md);background:var(--card)}
   table{border-collapse:collapse;width:100%;min-width:520px;font-size:clamp(.86rem,.3vw + .8rem,.94rem)}
@@ -263,26 +222,6 @@
   ul.plain li b{color:var(--ink);font-weight:620}
   ul.plain li:last-child{padding-bottom:0}
 
-  .summary{
-    background:linear-gradient(150deg,#101720,#0a0d12 70%);
-    border-radius:var(--r-lg);padding:clamp(22px,3.4vw,36px);
-    color:#eef3f8;margin:clamp(20px,3vw,30px) 0 0;
-    position:relative;overflow:hidden;
-  }
-  .summary::after{
-    content:"";position:absolute;right:-60px;top:-60px;width:220px;height:220px;border-radius:50%;
-    background:radial-gradient(circle, rgba(95,224,255,.20), transparent 68%);pointer-events:none;
-  }
-  .summary .mini-label{
-    font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:rgba(150,240,255,.72);
-    font-weight:700;display:block;margin-bottom:12px;
-  }
-  .summary p{
-    margin:0;font-size:clamp(1.02rem,1.1vw + .82rem,1.32rem);line-height:1.62;font-weight:600;
-    letter-spacing:-.01em;
-  }
-  .summary p em{font-style:normal;color:#7ceaff;box-shadow:inset 0 -1px 0 rgba(124,234,255,.4)}
-
   code,pre.k{font-family:var(--mono);font-size:.88em}
   code{background:#eff1ee;border:1px solid var(--line);border-radius:5px;padding:1px 5px;color:#243040}
   pre.k{
@@ -302,7 +241,6 @@
 
   /* ---------- responsive ---------- */
   @media (min-width:768px){
-    .why-grid{grid-template-columns:1fr 1fr;gap:16px}
     .stage-tools{top:14px;right:14px}
     .stage-badge{left:16px;top:16px}
   }
@@ -328,12 +266,12 @@
 
 <div class="wrap">
   <header class="top">
-    <p class="kicker">Metaball · 元球液体</p>
-    <h1>你画的东西从来不是液体，<br>你画的是一团雾。</h1>
+    <p class="kicker">Metaball · 实时演示</p>
+    <h1>元球液体</h1>
     <p class="lead">
-      上次我直接从术语开始讲（标量场、等值面），跳过了最关键的直觉。重来一遍。
-      整个元球液体只有一件事：<strong>几个鼓包叠在一起，用一条高度线去切。</strong>
-      下面这个可以拖的演示，就是这句话的完整实现。
+      一堆模糊的球叠成一张浓度场，再用一条阈值线切出边界，切到的地方就是液体。
+      页面上的液体<strong>没有画过任何圆，也没有做碰撞</strong>——它只是这张浓度图的等值线。
+      右侧参数都可以拖，拖坏了点重置。
     </p>
   </header>
 
@@ -376,7 +314,7 @@
           <span class="val" id="v-count"></span>
         </div>
         <input type="range" id="s-count" min="40" max="200" step="4" value="150">
-        <span class="hint">20 个大球永远看不出液体感，200 个小球才像。</span>
+        <span class="hint">球太少，轮廓会被单个球带出疙瘩；球多了表面才连续。</span>
       </div>
 
       <div class="slider">
@@ -433,7 +371,7 @@
       </div>
 
       <p class="panel-note">
-        <b>一般先固定半径，然后只调阈值</b>，就能找到最顺眼的手感。剩下的参数是微调。
+        <b>先固定半径、只调阈值</b>，最快找到顺眼的手感，剩下的都是微调。
       </p>
     </aside>
   </div>
@@ -441,124 +379,54 @@
   <main class="prose">
 
     <section class="block">
-      <h2 class="sec"><span class="num">01</span>想象桌上一张软膜</h2>
-      <p>
-        桌上绷一张保鲜膜那样的软膜，你从下面用手指在几个点往上顶，每顶一下就出来一个<strong>圆滑的鼓包</strong>，越靠近顶点越高，往四周慢慢落回桌面。
-      </p>
-      <p>
-        现在拿一把水平的刀，在离桌面高度 <code>T</code> 的位置横着切过去。<mark>刀切到的膜的边缘，就是液体的轮廓线。</mark>
-      </p>
-      <p>就这些。整个元球液体只有这一件事：<strong>几个鼓包叠在一起，用一条高度线去切。</strong></p>
+      <h2 class="sec">画面里在算什么</h2>
+      <p>每个球贡献一团浓度 <code>exp(−3d²/R²)</code>，把所有球加起来，得到一张没有边界的浓淡图。然后做一刀：<code>smoothstep(T−soft, T+soft)</code>，高于 T 的留下，低于 T 的抹成透明。</p>
+      <p>融合不需要额外逻辑。两滴靠近时，中间那块被两边同时抬高，越过 T，边界自己就连成一片；把阈值调高，同一张图又会裂成几滴。上面那条剖面曲线，画的就是这张图沿画面中线被切开的那一刀。</p>
     </section>
 
     <section class="block">
-      <h2 class="sec"><span class="num">02</span>两个关键的“为什么”</h2>
-      <div class="why-grid">
-        <div class="why">
-          <h3><span>Q1</span>为什么两个包靠近会连成一片？</h3>
-          <p>因为高度是<strong>相加</strong>的。两个包各自不够高，但它们挨得近时，中间那块膜被两边同时往上顶，加起来就超过了 <code>T</code>，于是切口连成一整片。</p>
-          <p>如果换成“取最大值”，也就是只看谁高就用谁，中间那块永远只等于其中一个包的高度，两滴液体永远不会融合。《黏黏世界》里那些液体能合能分，靠的就是这个“相加”。</p>
-        </div>
-        <div class="why">
-          <h3><span>Q2</span>为什么边缘必须是模糊的？</h3>
-          <p>如果每个球都是一个硬边圆圈，两个圆靠近，只是两个圆挨着，中间没有任何过渡，看起来像两个球贴着，不像一滴液体。</p>
-          <p><strong>融合只发生在渐变区</strong>：边缘是缓缓变淡的，叠加后才会有“中间先变浓、先够到 <code>T</code>”的效果。</p>
-        </div>
-      </div>
-      <p style="margin-top:18px">这就是全部秘密：<strong>模糊的边缘 + 相加 + 一条阈值线</strong>。</p>
+      <h2 class="sec">可以试的</h2>
+      <ul class="plain">
+        <li><b>按住拖动</b>：液体被推开、拉长，细的地方会自己在中间断开。</li>
+        <li><b>点一下</b>：在那个位置滴一滴，看它怎么被吸进去。</li>
+        <li><b>雾团视图</b>：关掉阈值，直接看那张浓淡图，青线标的就是刀口的位置。</li>
+        <li><b>双色</b>：颜色跟着球走，搅动后能看到两团把彼此的边界吞掉。</li>
+        <li><b>重力</b>：液体塌下去，在底部摊成一摊。</li>
+      </ul>
     </section>
 
     <section class="block">
-      <h2 class="sec"><span class="num">03</span>换个说法：雾团</h2>
-      <p>
-        更贴代码的讲法：每个球不是画圆，是画一团<strong>雾</strong>，中心白、边缘慢慢变透明。两团雾重叠的地方雾更浓。
-      </p>
-      <p>
-        然后规定一条线：“浓度超过某个值的部分保留，其余直接抹成全透明。”
-      </p>
-      <p>
-        浓度不够的地方被抹掉，两团雾就成了一次液体。<mark>阈值就是那把刀。</mark>
-      </p>
-      <div class="callout">
-        <span class="mini-label">在页面上看一眼</span>
-        <p>点开演示右上（或手机面板里）的<strong>“雾团视图”</strong>，画面会立刻变成那张没有边界的浓淡图，青色细线就是刀口所在的位置。再点一次关掉，浓淡图被“加对比”，剩下的白块就是液体。</p>
-      </div>
-    </section>
-
-    <section class="block">
-      <h2 class="sec"><span class="num">04</span>一帧里发生什么</h2>
-      <ol class="steps">
-        <li>把每个球的雾团画到画布上，用<b>“相加”</b>的方式叠加，不覆盖之前的。</li>
-        <li>整张图现在是一张<b>浓淡分布图</b>，没有边界，只有哪里浓哪里淡。</li>
-        <li>用一个滤镜把这张图“加对比”：浓的变纯白，淡的直接消失。</li>
-        <li>屏幕上剩下的白色区域，就是液体的形状。</li>
-        <li>球的位置按物理更新，然后回去做第 1 步。</li>
-      </ol>
-      <p style="margin-top:18px">
-        你画的东西从来不是液体，<strong>你画的是一团雾，液体是滤镜看完之后剩下的结果。</strong>
-      </p>
-    </section>
-
-    <section class="block">
-      <h2 class="sec"><span class="num">05</span>参数怎么调（用手感说）</h2>
+      <h2 class="sec">参数在动什么</h2>
       <div class="table-scroll">
         <table>
           <thead>
-            <tr><th>调什么</th><th>调大</th><th>调小</th></tr>
+            <tr><th>参数</th><th>实际改的是什么</th><th>往两边拉会怎样</th></tr>
           </thead>
           <tbody>
-            <tr><td>球的半径</td><td>更黏，容易成一大坨</td><td>更容易碎成小滴</td></tr>
-            <tr><td>阈值（那把刀的高度）</td><td>表面收紧，液滴更容易分离</td><td>整体膨胀，容易糊成一片</td></tr>
-            <tr><td>边缘模糊程度</td><td>边缘更软，融合更丝滑</td><td>边缘发硬，接近普通圆圈</td></tr>
-            <tr><td>叠加时中心多不透明</td><td>容易过度重叠，融合变得模糊</td><td>叠加区分不足，融合部位不明显</td></tr>
-            <tr><td>速度阻尼</td><td>更黏稠，像蜂蜜</td><td>更弹，像水银</td></tr>
+            <tr><td>球的数量</td><td>参与叠加的粒子数</td><td>少：轮廓被单个球决定，出现疙瘩；多：表面连续，但更吃性能</td></tr>
+            <tr><td>球的半径 R</td><td>高斯衰减的尺度</td><td>大：容易连成一大坨；小：更易碎成小滴</td></tr>
+            <tr><td>阈值 T</td><td>等值线的高度</td><td>高：表面收紧、容易分离；低：整体膨胀、糊成一片</td></tr>
+            <tr><td>边缘模糊 soft</td><td>smoothstep 的过渡宽度</td><td>大：边缘软、融合丝滑；小：接近硬边圆，像两个球贴着</td></tr>
+            <tr><td>中心不透明度</td><td>单个球的峰值浓度</td><td>高：重叠区过饱和，融合处发白；低：叠加区分不足，看不出融合</td></tr>
+            <tr><td>速度阻尼</td><td>速度的衰减率</td><td>高：像蜂蜜；低：像水银</td></tr>
           </tbody>
         </table>
       </div>
-      <p class="table-hint">一般先固定半径，然后<strong>只调阈值</strong>，就能找到最顺眼的手感。</p>
+      <p class="table-hint">一般固定半径、只调阈值，最快找到顺眼的手感。</p>
     </section>
 
     <section class="block">
-      <h2 class="sec"><span class="num">06</span>它为什么像液体，而不像软糖</h2>
-      <p>三件事：</p>
-      <ul class="plain">
-        <li><b>球之间有一点微弱吸引。</b>没有这个，球只是“粘”在一起；有了它，融合处才会像有一层表面张力在拉。</li>
-        <li><b>阻尼要偏高。</b>蜂蜜不会晃很久，水银也不会。</li>
-        <li><b>球的数量要多，单个球要小。</b>用 20 个大球永远看不出液体感，用 200 个小球才像。<b>这可能是最容易做错的一步</b>，大多数人第一版都把球做得太大了。</li>
-      </ul>
-    </section>
-
-    <section class="block">
-      <h2 class="sec"><span class="num">07</span>还能往上加</h2>
-      <ul class="plain">
-        <li><b>两种颜色混：</b>在浓淡图上按浓度插值两种色，混合处自动出现第三种颜色，不用额外逻辑。（页面里的“双色”按钮）</li>
-        <li><b>拉长会断：</b>快速甩动时球被拉成细线，阈值会让它在中段自动断开，这个瞬间最好看。</li>
-        <li><b>加障碍物：</b>中间放一根柱子，液体会绕过去再合流，能看到“表面张力决定绕行路线”。</li>
-        <li><b>剖面曲线：</b>画一条横线，右边把沿线的浓度画成曲线，能直接看见两个交点，也就是液体的左右边界。（页面顶上那张图）</li>
-      </ul>
-    </section>
-
-    <div class="summary">
-      <span class="mini-label">一句话总结</span>
-      <p>你画一堆模糊的白团，让它们叠在一起，然后用一条浓度线把淡的部分全部删掉。<em>剩下的白块就是液体。</em></p>
-    </div>
-
-    <section class="block" style="margin-top:clamp(22px,3vw,34px)">
-      <h2 class="sec"><span class="num">08</span>这个页面是怎么实现的</h2>
-      <p>没有用库，一个 WebGL 片元着色器就够。每个像素做同一件事：把附近所有球的贡献加起来，和阈值比一次。</p>
-      <pre class="k"><span class="c">// 每个像素的浓度：所有雾团相加</span>
+      <h2 class="sec">实现</h2>
+      <p>一个片元着色器，全屏三角形，每个像素遍历所有球累加浓度，和阈值比一次就出结果。参数都是实时 uniform，拖滑块不会重编译。</p>
+      <pre class="k"><span class="c">// 每个像素的浓度：所有球相加</span>
 D = 0
 for each ball b:
     D += center * exp( -3 * |p - b.pos|² / b.r² )
 
-<span class="c">// 那条刀口：软阈值，soft 决定边缘多模糊</span>
-mask = smoothstep( T - soft, T + soft, D )
+<span class="c">// 那一刀：soft 决定边缘多模糊</span>
+mask  = smoothstep( T - soft, T + soft, D )
 color = mix( background, liquid, mask )</pre>
-      <p>
-        剖面曲线用的是<strong>同一个公式</strong>，只是在 CPU 上沿一条横线采样，所以曲线上量到的交点和画面上液体的边缘是对得上的。
-        页面上所有参数都是实时 uniform，拖动滑块不用重编译着色器。
-      </p>
-      <p>完整源码：<a href="https://github.com/wtsswt/metaball-liquid" target="_blank" rel="noopener">github.com/wtsswt/metaball-liquid</a></p>
+      <p>剖面曲线在 CPU 上用同一公式采样，所以曲线上的交点和画面里液体的边缘是对得上的。源码在 <a href="https://github.com/wtsswt/metaball-liquid" target="_blank" rel="noopener">GitHub</a>，单文件，无依赖。</p>
     </section>
 
   </main>
