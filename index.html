@@ -75,7 +75,7 @@
 
   /* ---------- stage ---------- */
   .stage{
-    position:relative;height:clamp(258px,44vw,520px);
+    position:relative;height:clamp(252px,40vw,470px);
     border-radius:var(--r-lg);overflow:hidden;background:var(--stage);
     box-shadow:var(--shadow);isolation:isolate;
   }
@@ -311,6 +311,9 @@
     .panel{position:sticky;top:20px}
     .prose p{margin-bottom:16px}
   }
+  @media (max-width:520px){
+    .stage-badge{display:none}
+  }
   @media (max-width:420px){
     .stage-hint{font-size:11px;padding:6px 11px;bottom:10px}
     .chip{padding:0 11px;font-size:12px}
@@ -390,7 +393,7 @@
           <label for="s-thresh">阈值（那把刀）</label>
           <span class="val" id="v-thresh"></span>
         </div>
-        <input type="range" id="s-thresh" min="0.08" max="1.2" step="0.01" value="0.38">
+        <input type="range" id="s-thresh" min="0.08" max="1.2" step="0.01" value="0.42">
         <span class="hint">调大表面收紧、液滴易分离；调小整体膨胀、容易糊成一片。</span>
       </div>
 
@@ -399,7 +402,7 @@
           <label for="s-soft">边缘模糊程度</label>
           <span class="val" id="v-soft"></span>
         </div>
-        <input type="range" id="s-soft" min="0.01" max="0.36" step="0.005" value="0.1">
+        <input type="range" id="s-soft" min="0.01" max="0.36" step="0.005" value="0.055">
         <span class="hint">调大边缘更软、融合更丝滑；调小边缘发硬，接近普通圆圈。</span>
       </div>
 
@@ -584,8 +587,8 @@ color = mix( background, liquid, mask )</pre>
   var state = {
     count: 150,
     R: 42,
-    thresh: 0.38,
-    soft: 0.10,
+    thresh: 0.42,
+    soft: 0.055,
     center: 1.0,
     damp: 34,
     fog: false,
@@ -649,16 +652,18 @@ color = mix( background, liquid, mask )</pre>
     '  }',
     '  vec3 tint = acc / max(D, 0.0001);',
     '  float mask = smoothstep(uThresh - uSoft, uThresh + uSoft, D);',
-    '  float depth = clamp((D - uThresh) / max(uThresh * 2.0, 0.25), 0.0, 1.0);',
-    '  vec3 liquid = tint * mix(0.62, 1.10, depth);',
-    '  float rim = mask * (1.0 - smoothstep(uThresh + uSoft * 0.5, uThresh + uSoft * 0.5 + 0.55, D));',
-    '  liquid = mix(liquid, vec3(0.94,0.99,1.0), rim * 0.28);',
+    '  float depth = clamp((D - uThresh) / max(uThresh * 1.6, 0.2), 0.0, 1.0);',
+    '  vec3 liquid = tint * mix(0.70, 1.06, depth);',
+    '  float fall = smoothstep(0.0, uCss.y * 1.15, css.y);',
+    '  liquid *= mix(1.02, 0.90, fall);',
+    '  float rim = mask * (1.0 - smoothstep(uThresh + uSoft * 0.4, uThresh + uSoft * 0.4 + 0.30, D));',
+    '  liquid = mix(liquid, vec3(0.96,1.0,1.0), rim * 0.30);',
     '',
     '  vec3 bg = bgColor(css);',
     '  vec3 outL = mix(bg, liquid, mask);',
     '',
-    '  float fog = 1.0 - exp(-D * 0.78);',
-    '  vec3 fogc = mix(bg, vec3(0.72,0.84,0.92), fog * 0.94);',
+    '  float fog = pow(D / (D + 1.55), 0.85);',
+    '  vec3 fogc = mix(bg, vec3(0.74,0.85,0.93), clamp(fog * 1.12, 0.0, 1.0));',
     '  float band = smoothstep(uSoft * 1.7 + 0.008, 0.0, abs(D - uThresh));',
     '  fogc = mix(fogc, vec3(0.28,0.94,0.88), band * 0.9);',
     '',
@@ -736,36 +741,43 @@ color = mix( background, liquid, mask )</pre>
   function seed(n){
     balls.length = 0;
     var cx = W / 2, cy = H / 2;
-    var rx = Math.min(W * 0.40, 300), ry = Math.min(H * 0.38, 240);
-    var minD = Math.max(8, state.R * 0.55);
-    var minD2 = minD * minD;
-    var guard = 0, target = Math.min(n, MAXB);
-    while (balls.length < target && guard < target * 90){
-      guard++;
-      var a = Math.random() * Math.PI * 2;
-      var rr = Math.sqrt(Math.random());
-      var x = cx + Math.cos(a) * rr * rx;
-      var y = cy + Math.sin(a) * rr * ry;
-      if (x < 12 || x > W - 12 || y < 12 || y > H - 12) continue;
-      var good = true;
-      for (var i = 0; i < balls.length; i++){
-        var dx = balls[i].x - x, dy = balls[i].y - y;
-        if (dx * dx + dy * dy < minD2){ good = false; break; }
+    var a = Math.min(W * 0.31, 260), b = Math.min(H * 0.27, 175);
+    var target = Math.min(n, MAXB);
+
+    // 椭圆内铺一张抖动网格：密度均匀，形状才不会是“一团乱麻”
+    var need = Math.ceil(target / 0.785);
+    var cols = Math.max(2, Math.round(Math.sqrt(need * a / b)));
+    var rows = Math.max(2, Math.ceil(need / cols));
+    var cellW = 2 * a / cols, cellH = 2 * b / rows;
+    var p1 = Math.random() * Math.PI * 2, p2 = Math.random() * Math.PI * 2;
+    var pts = [];
+    for (var r = 0; r < rows; r++){
+      for (var c = 0; c < cols; c++){
+        var x = cx - a + (c + 0.5) * cellW + (Math.random() - 0.5) * cellW * 0.5;
+        var y = cy - b + (r + 0.5) * cellH + (Math.random() - 0.5) * cellH * 0.5;
+        var ex = (x - cx) / (a * 0.88), ey = (y - cy) / (b * 0.88);
+        if (ex * ex + ey * ey > 1) continue;
+        // 低频扰动，让轮廓是“一摊液体”而不是几何椭圆
+        var ang = Math.atan2(y - cy, x - cx);
+        var wob = 1 + 0.10 * Math.sin(3 * ang + p1) + 0.055 * Math.sin(5 * ang + p2);
+        pts.push([cx + (x - cx) * wob, cy + (y - cy) * wob]);
       }
-      if (good) balls.push(makeBall(x, y));
     }
-    // 网格补位，保证数量到齐
-    if (balls.length < target){
-      var cols = Math.ceil(Math.sqrt(target * W / Math.max(H, 1)));
-      var rows = Math.ceil(target / cols);
-      for (var r = 0; r < rows && balls.length < target; r++){
-        for (var c = 0; c < cols && balls.length < target; c++){
-          balls.push(makeBall(
-            24 + (c + 0.5) * (W - 48) / cols + (Math.random() - 0.5) * 6,
-            24 + (r + 0.5) * (H - 48) / rows + (Math.random() - 0.5) * 6
-          ));
-        }
+    for (var i = pts.length - 1; i > 0; i--){
+      var j = Math.floor(Math.random() * (i + 1));
+      var tmp = pts[i]; pts[i] = pts[j]; pts[j] = tmp;
+    }
+    for (var k = 0; k < target; k++){
+      var p = pts[k % pts.length];
+      var ox = 0, oy = 0;
+      if (k >= pts.length){
+        ox = (Math.random() - 0.5) * cellW;
+        oy = (Math.random() - 0.5) * cellH;
       }
+      balls.push(makeBall(
+        Math.min(Math.max(p[0] + ox, 10), W - 10),
+        Math.min(Math.max(p[1] + oy, 10), H - 10)
+      ));
     }
   }
 
@@ -806,11 +818,11 @@ color = mix( background, liquid, mask )</pre>
     }
 
     if (first){
-      var cnt = Math.round(Math.min(MAXB, Math.max(48, (W * H) / 3200)));
+      var cnt = Math.round(Math.min(MAXB, Math.max(70, (W * H) / 2400)));
       state.count = cnt;
       document.getElementById('s-count').value = cnt;
       if (!userTouchedRadius){
-        state.R = Math.round(Math.min(110, Math.max(24, 0.72 * Math.sqrt((W * H) / cnt))));
+        state.R = Math.round(Math.min(120, Math.max(26, 0.95 * Math.sqrt((W * H) / cnt))));
         document.getElementById('s-radius').value = state.R;
       }
       seed(cnt);
@@ -832,7 +844,7 @@ color = mix( background, liquid, mask )</pre>
     var R = state.R;
     var rad = R * 2.15, rad2 = rad * rad;
     var inner = R * 1.30;
-    var kAtt = 0.85;
+    var kAtt = 0.55;
 
     // 表面张力：只在“壳层”互相吸引，内部不产生弹簧感
     for (var i = 0; i < n; i++){
@@ -1028,8 +1040,8 @@ color = mix( background, liquid, mask )</pre>
     // 标注
     ctx2.font = '11px ui-monospace, SFMono-Regular, Menlo, monospace';
     ctx2.fillStyle = '#d8664a';
-    ctx2.textAlign = 'right';
-    ctx2.fillText('T = ' + T.toFixed(2), w - 2, yT - 6);
+    ctx2.textAlign = 'left';
+    ctx2.fillText('T = ' + T.toFixed(2), 6, yT - 6);
     ctx2.fillStyle = '#a4abb3';
     ctx2.textAlign = 'left';
     ctx2.fillText('D', 2, 12);
@@ -1204,7 +1216,6 @@ color = mix( background, liquid, mask )</pre>
   canvas.addEventListener('pointerleave', function(){ if (pointer.active) endPointer({}); });
 
   /* 键盘微调（可访问性） */
-  canvas.setAttribute('tabindex', '0');
   canvas.setAttribute('role', 'img');
   canvas.setAttribute('aria-label', '元球液体演示：拖动可搅拌液滴，点击可加一滴');
 
